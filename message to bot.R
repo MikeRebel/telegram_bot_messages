@@ -3,9 +3,7 @@ library(telegram.bot)
 library(httr)
 library(jsonlite)
 
-bot_token <- ""
-
-library(telegram.bot)
+source("secret.R")
 
 bot <- Bot(token = bot_token)
 print(bot$getMe())
