@@ -13,12 +13,14 @@ if (length(updates) > 0) {
 } else {
      print("Напишите что-то в группе бота")
 }
+print(group_chat_id)
+print(chat_id)
 
 # Set up the channel
 channel_name <- "Чат душнил"
 
 # Set up the message
-message_text <- " ты точно душнила дня "
+message_text <- ", ты заcлуженно становишься почётным душнилой дня."
 
 # change i to update group_chat_id from correct update number in updates[[i]]
 if (updates[[1]][["message"]][["chat"]][["title"]] == channel_name) {
@@ -26,7 +28,8 @@ if (updates[[1]][["message"]][["chat"]][["title"]] == channel_name) {
 } else {
      print(paste0("Напишите что-то в группе ",channel_name))
 }
-
+print(group_chat_id)
+# data.table to store messages
 dt_messages <- data.table(
      user_id = as.integer(1),
      user_message = "",
@@ -34,18 +37,20 @@ dt_messages <- data.table(
      
 )
 dt_messages <- dt_messages[-1]
-
 rm(last_date)
+
+# Store messages to dt_messages and select dushnila dnya 3 times a day if get_random_number() return 1
 handle_message <- function(dbot, update) {
      user_message <- as.character(update$message$text)
      chat_id <- update$message$chat_id
      user_id <- update$message$from_user
      user_name <- update$message$from$username
+     is.dushnila.chosen <- get_random_number()
      if (length(user_message) == 0) {user_message = " "}
      if (length(user_name) == 0) {user_name = " "}
      # Do something with the message, chat_id, and user_id
      print(user_message)
-
+     print(paste0("выбран ли душнила = ", is.dushnila.chosen))
      if (chat_id == group_chat_id) {
           # dbot$sendMessage(chat_id = chat_id, text = message)
           DT_m_current = data.table(
@@ -55,14 +60,14 @@ handle_message <- function(dbot, update) {
           )
           
           dt_messages <<- rbind(dt_messages, DT_m_current)
-          if (get_random_number() == 1) {
+          if (is.dushnila.chosen == 1) {
                
                bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
-               while (length(bot_message$user_message) > 0 & length(bot_message$name) > 0) {
+               while (length(bot_message$user_message) < 1 | length(bot_message$name) < 1) {
                     bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
                     }
                
-               dbot$sendMessage(chat_id = chat_id, text = paste0("@",bot_message$name, message_text, 'если думаешь, что "', bot_message$user_message,'"'))
+               dbot$sendMessage(chat_id = chat_id, text = paste0("@",bot_message$name, " ", gsub("\t", "", dushno_congratulations[sample(1:48,1),phrase]), " считая, что ", bot_message$user_message, message_text))
                dt_messages <<- data.table(
                     user_id = as.integer(1),
                     user_message = "",
@@ -82,5 +87,6 @@ rm(updater)
 updater <- Updater(token = dbot_token)
 updater <- updater + message_handler
 
+# start bot 
 updater$start_polling()
 
