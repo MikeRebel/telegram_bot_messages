@@ -69,6 +69,16 @@ handle_message <- function(dbot, update) {
                          bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
                     }
                }
+               saveRDS(bot_message,file = paste0(dushno_choises_save_path,
+                                                 "winner_poll_", 
+                                                 count_ones, 
+                                                 "_", 
+                                                 format(Sys.time(), 
+                                                        "%a %b %d"
+                                                        ), 
+                                                 ".rds"
+                                                 )
+                       )
                
                dbot$sendMessage(chat_id = chat_id, text = paste0("@",
                                                                  bot_message$name, 
@@ -86,7 +96,18 @@ handle_message <- function(dbot, update) {
                                                                         )
   
                                                                  )
-                                )               
+                                )
+               saveRDS(dt_messages,file = paste0(dushno_choises_save_path,
+                                                 "winner_poll_", 
+                                                 count_ones, 
+                                                 "_candidates_", 
+                                                 format(Sys.time(), 
+                                                        "%a %b %d"
+                                                 ), 
+                                                 ".rds"
+               )
+               
+               )
                dt_messages <<- data.table(
                     user_id = as.integer(1),
                     user_message = "",
