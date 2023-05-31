@@ -63,7 +63,7 @@ get_random_number <- function() {
      # Check if today's date is already stored in the environment
      if (exists("last_date") && last_date == today) {
           # If today's date is already stored, check if 1 has been returned 3 times
-          if (exists("count_ones") && count_ones >= 3) {
+          if (exists("count_ones") && count_ones >= 5) {
                # If 1 has been returned 3 times, return 0
                return(0)
           } else {

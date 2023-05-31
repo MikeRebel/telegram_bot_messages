@@ -20,7 +20,8 @@ print(chat_id)
 channel_name <- "Чат душнил"
 
 # Set up the message
-message_text <- ", ты заcлуженно становишься почётным душнилой дня."
+message_text <- ' Tы заcлуженно становишься почётным душнилой дня.'
+message_text2 <- ' ты заcлуженно становишься почётным душнилой дня.'
 
 # change i to update group_chat_id from correct update number in updates[[i]]
 if (updates[[1]][["message"]][["chat"]][["title"]] == channel_name) {
@@ -63,11 +64,29 @@ handle_message <- function(dbot, update) {
           if (is.dushnila.chosen == 1) {
                
                bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
-               while (length(bot_message$user_message) < 1 | length(bot_message$name) < 1) {
-                    bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
+               if (nchar(bot_message$user_message) <= 1 | nchar(bot_message$name) <= 1) {
+                    while (nchar(bot_message$user_message) <= 1 | nchar(bot_message$name) <= 1) {
+                         bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
                     }
+               }
                
-               dbot$sendMessage(chat_id = chat_id, text = paste0("@",bot_message$name, " ", gsub("\t", "", dushno_congratulations[sample(1:48,1),phrase]), " считая, что ", bot_message$user_message, message_text))
+               dbot$sendMessage(chat_id = chat_id, text = paste0("@",
+                                                                 bot_message$name, 
+                                                                 " ", 
+                                                                 gsub("\t", 
+                                                                      "", 
+                                                                      dushno_congratulations[sample(1:48,1),phrase]
+                                                                      ), 
+                                                                 ' и cчитая, что ', 
+                                                                 bot_message$user_message,
+                                                                 
+                                                                 ifelse(grepl("$[[:punct:]]", bot_message$user_message),
+                                                                        message_text,
+                                                                        message_text2
+                                                                        )
+  
+                                                                 )
+                                )               
                dt_messages <<- data.table(
                     user_id = as.integer(1),
                     user_message = "",
