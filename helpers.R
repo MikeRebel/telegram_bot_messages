@@ -73,7 +73,7 @@ get_random_number <- function() {
                if (random_number == 1) {
                     # If 1 is returned, increment the count of 1s returned today
                     count_ones <<- count_ones + 1
-                    random_number_multiplicatior <<- random_number_multiplicatior * (1 + count_ones)
+                    random_number_multiplicatior <<- random_number_multiplicatior + (random_number_multiplicatior + count_ones)
                     return(random_number)
                }
                return(0)
@@ -82,7 +82,7 @@ get_random_number <- function() {
           # If today's date is not stored, reset the count of 1s returned and store today's date
           count_ones <<- 0
           last_date <<- today
-          random_number_multiplicatior <<- 10
+          random_number_multiplicatior <<- 5
           # Randomly return 0 or 1
           random_number <- sample(0:random_number_multiplicatior, 1)
           if (random_number == 1) {

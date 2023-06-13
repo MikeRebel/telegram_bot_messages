@@ -1,5 +1,6 @@
 library(telegram.bot)
 library(data.table)
+library(maditr)
 
 # Set up the bot
 source("secret.R")
@@ -20,8 +21,8 @@ print(chat_id)
 channel_name <- "Чат душнил"
 
 # Set up the message
-message_text <- ' Tы заcлуженно становишься почётным душнилой дня.'
-message_text2 <- ' ты заcлуженно становишься почётным душнилой дня.'
+message_text <- ' Tы заcлуженно становишься почётным душнилой дня номер '
+message_text2 <- ' ты заcлуженно становишься почётным душнилой дня номер '
 
 # change i to update group_chat_id from correct update number in updates[[i]]
 if (updates[[1]][["message"]][["chat"]][["title"]] == channel_name) {
@@ -34,7 +35,8 @@ print(group_chat_id)
 dt_messages <- data.table(
      user_id = as.integer(1),
      user_message = "",
-     name = ""
+     name = "",
+     message_date = as.Date.POSIXct(Sys.time())
      
 )
 dt_messages <- dt_messages[-1]
@@ -46,22 +48,44 @@ handle_message <- function(dbot, update) {
      chat_id <- update$message$chat_id
      user_id <- update$message$from_user
      user_name <- update$message$from$username
-     is.dushnila.chosen <- get_random_number()
+     message_date <- as.Date.POSIXct(update$message$date)
+     dt_messages <<- rows(dt_messages, message_date == as.Date.POSIXct(Sys.time()))
+     
+     if (sample(1:100,1)<nrow(dt_messages)) {
+          is.dushnila.chosen <- get_random_number()
+     } else {
+          is.dushnila.chosen <- 0
+     }
+     
      if (length(user_message) == 0) {user_message = " "}
      if (length(user_name) == 0) {user_name = " "}
+     if (length(message_date) == 0) {message_date = as.Date.POSIXct(Sys.time())}
+     
      # Do something with the message, chat_id, and user_id
-     print(user_message)
-     print(paste0("выбран ли душнила = ", is.dushnila.chosen))
+     
+     print(paste0(user_message, 
+                  " это ", 
+                  nrow(dt_messages), 
+                  "строка в массиве сообщений.", 
+                  "Душнила выбран = ", 
+                  is.dushnila.chosen
+                  )
+           )
+     
      if (chat_id == group_chat_id) {
           # dbot$sendMessage(chat_id = chat_id, text = message)
           DT_m_current = data.table(
                user_id = user_id,
                user_message = user_message,
-               name = user_name
+               name = user_name,
+               message_date = message_date
           )
           
           dt_messages <<- rbind(dt_messages, DT_m_current)
+          
+          
           if (is.dushnila.chosen == 1) {
+               
                
                bot_message <- dt_messages[sample(nrow(dt_messages), 1)]
                if (nchar(bot_message$user_message) <= 1 | nchar(bot_message$name) <= 1) {
@@ -93,7 +117,8 @@ handle_message <- function(dbot, update) {
                                                                  ifelse(grepl("$[[:punct:]]", bot_message$user_message),
                                                                         message_text,
                                                                         message_text2
-                                                                        )
+                                                                        ),
+                                                                 count_ones
   
                                                                  )
                                 )
@@ -111,8 +136,8 @@ handle_message <- function(dbot, update) {
                dt_messages <<- data.table(
                     user_id = as.integer(1),
                     user_message = "",
-                    name = ""
-                    
+                    name = "",
+                    message_date = as.Date.POSIXct(Sys.time())
                )
                dt_messages <<- dt_messages[-1]
                
@@ -130,3 +155,6 @@ updater <- updater + message_handler
 # start bot 
 updater$start_polling()
 
+# dbot$sendMessage(chat_id = chat_id, text = "Вика, поправляйся скорее")
+
+# dbot$sendMessage(chat_id = chat_id, text = "")
