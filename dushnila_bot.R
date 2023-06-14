@@ -49,9 +49,12 @@ handle_message <- function(dbot, update) {
      user_id <- update$message$from_user
      user_name <- update$message$from$username
      message_date <- as.Date.POSIXct(update$message$date)
-     dt_messages <<- rows(dt_messages, message_date == as.Date.POSIXct(Sys.time()))
+     random_message_seed <- sample(1:100,1)
      
-     if (sample(1:100,1)<nrow(dt_messages)) {
+     dt_messages <<- rows(dt_messages, message_date == as.Date.POSIXct(Sys.time()))
+
+     
+     if (random_message_seed < nrow(dt_messages)) {
           is.dushnila.chosen <- get_random_number()
      } else {
           is.dushnila.chosen <- 0
@@ -66,8 +69,10 @@ handle_message <- function(dbot, update) {
      print(paste0(user_message, 
                   " это ", 
                   nrow(dt_messages), 
-                  "строка в массиве сообщений.", 
-                  "Душнила выбран = ", 
+                  " строка в массиве сообщений. ",
+                  "Зерно ",
+                  random_message_seed,
+                  " Душнила выбран = ", 
                   is.dushnila.chosen
                   )
            )
