@@ -56,6 +56,7 @@ handle_message <- function(dbot, update) {
      
      if (random_message_seed < nrow(dt_messages)) {
           is.dushnila.chosen <- get_random_number()
+          print("randomize")
      } else {
           is.dushnila.chosen <- 0
      }
