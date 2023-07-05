@@ -1,3 +1,9 @@
+start <- function(bot, update){
+     bot$sendMessage(chat_id = update$message$chat_id,
+                     text = sprintf("Hello %s!", update$message$from$first_name))
+}
+
+
 dushno_choises_save_path = "dushnila_polls_choises/"
 
 dushno_congratulations = data.table(
@@ -94,4 +100,23 @@ get_random_number <- function() {
      }
 }
 
+
+# Define a function to get updates from Telegram
+get_updates <- function(tbot) {
+     
+     if (exists("last_update_id.rds")) {
+          last_update_id <- readRDS(paste0(update_path,"last_update_id.rds"))
+     }
+     
+     # Get updates from Telegram
+     updates <- tbot$getUpdates()
+     
+     # Save the last update ID
+     if (length(updates) > 0) {
+          last_update_id <- max(sapply(updates, function(update) update$update_id))
+          saveRDS(last_update_id, paste0(update_path,"last_update_id.rds"))
+     }
+     
+     return(updates)
+}
 
