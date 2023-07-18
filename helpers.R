@@ -1,9 +1,17 @@
-start <- function(bot, update){
-     bot$sendMessage(chat_id = update$message$chat_id,
-                     text = sprintf("Hello %s!", update$message$from$first_name))
-}
 
 
+#### wbot helpers ####
+warthunder_save_path = "updates/wbot/"
+win <- function(bot, update) {}
+date <- function(bot, update) {}
+time <- function(bot, update) {}
+link <- function(bot, update) {}
+analyse <- function(bot, update) {}
+show_data <- function(bot, update) {}
+
+
+
+#### dbot helpers ####
 dushno_choises_save_path = "dushnila_polls_choises/"
 
 dushno_congratulations = data.table(
@@ -98,6 +106,13 @@ get_random_number <- function() {
           }
           return(0)
      }
+}
+
+
+#### common functions ####
+start <- function(bot, update){
+     bot$sendMessage(chat_id = update$message$chat_id,
+                     text = sprintf("Hello %s!", update$message$from$first_name))
 }
 
 
