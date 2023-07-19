@@ -1,14 +1,75 @@
-
-
 #### wbot helpers ####
 warthunder_save_path = "updates/wbot/"
-win <- function(bot, update) {}
-date <- function(bot, update) {}
-time <- function(bot, update) {}
-link <- function(bot, update) {}
-analyse <- function(bot, update) {}
-show_data <- function(bot, update) {}
 
+win <- function(bot, update) {
+     user_message <- as.character(update$message$text) %>% gsub("/win ", "", .) %>% as.integer()
+     # user_message <- gsub("/win ", "", user_message) %>% as.integer()
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     message_date <- as.Date.POSIXct(update$message$date)
+     
+     if(user_message >= 0 & user_message <= 1) {
+          user_profile <- rows(warthunder_user_profile,user_id==user_id & is.na(win_link))
+          if (nrow(user_profile) > 0) {
+               bot$sendMessage(chat_id = update$message$chat_id,  text ="Заполните недостающие данные в предыдущей записи, прежде чем создавать новую")
+          } else {
+               
+          user_profile <- data.table(
+               user_id = user_id,
+               user_name = user_name,
+               win = user_message,
+               win_date = "",
+               win_timestamp = NA,
+               win_link = NA,
+               message_date = as.Date.POSIXct(Sys.time())
+          )
+          
+          warthunder_user_profile <<- rbind(warthunder_user_profile, user_profile)
+          
+          bot$sendMessage(chat_id = update$message$chat_id,  text = paste0("Вы указали win=", user_message, " теперь укажите дату окончания боя командой /date xxxx"))
+          
+          }
+     } else {
+          
+          bot$sendMessage(chat_id = update$message$chat_id,  text = "Некорректное значение. Укажите выигрыш или поражение, цифра 1 или 0.")
+          
+     }
+}
+date <- function(bot, update) {
+     user_message <- as.character(update$message$text)
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     
+     
+}
+w_bot_timestamp <- function(bot, update) {
+     user_message <- as.character(update$message$text)
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     message_date <- as.Date.POSIXct(update$message$date)
+     
+}
+link <- function(bot, update) {
+     user_message <- as.character(update$message$text)
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     message_date <- as.Date.POSIXct(update$message$date)
+     
+}
+analyse <- function(bot, update) {
+     user_message <- as.character(update$message$text)
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     message_date <- as.Date.POSIXct(update$message$date)
+     
+}
+show_data <- function(bot, update) {
+     user_message <- as.character(update$message$text)
+     user_id <- update$message$from_user
+     user_name <- update$message$from$username
+     message_date <- as.Date.POSIXct(update$message$date)
+     
+}
 
 
 #### dbot helpers ####
