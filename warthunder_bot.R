@@ -30,6 +30,9 @@ warthunder_user_profile <- data.table(
 )
 warthunder_user_profile <- warthunder_user_profile[-1]
 
+# for setup execute 
+# saveRDS(warthunder_user_profile,paste0(warthunder_save_path, "warthunder_user_profile.rds"))
+
 warthunder_user_profile <- readRDS(paste0(warthunder_save_path, "warthunder_user_profile.rds"))
 
 # обрабатываем сообщения от пользователя. Если есть условные фразы, заносим данные в профиль.
