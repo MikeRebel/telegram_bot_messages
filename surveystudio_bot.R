@@ -16,7 +16,7 @@ print(chat_id)
 start_handler <- CommandHandler("start", start)
 list_handler <- CommandHandler("list", list)
 # Команды
-# start - Strat bot
+# start - Начало работы. Для управления проектом используйте id проекта из команды /list
 # list - список открытых проектов из Survey Studio
 
 #### daemon ####
