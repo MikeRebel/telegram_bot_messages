@@ -170,6 +170,15 @@ get_random_number <- function() {
 }
 
 
+#### sstbot helpers ####
+# /list command 
+list <- function(bot, update) {
+     
+     
+     
+}
+
+
 #### common functions ####
 start <- function(bot, update){
      bot$sendMessage(chat_id = update$message$chat_id,
