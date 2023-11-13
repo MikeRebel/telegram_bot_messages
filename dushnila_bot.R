@@ -1,7 +1,3 @@
-library(telegram.bot)
-library(data.table)
-library(maditr)
-
 # Set up the bot
 source("secret.R")
 source("helpers.R")

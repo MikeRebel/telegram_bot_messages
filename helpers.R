@@ -1,3 +1,9 @@
+library(telegram.bot)
+library(httr)
+library(jsonlite)
+library(data.table)
+library(maditr)
+
 #### wbot helpers ####
 warthunder_save_path = "updates/wbot/"
 

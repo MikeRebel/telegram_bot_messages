@@ -1,7 +1,3 @@
-library(telegram.bot)
-library(data.table)
-library(maditr)
-
 source("secret.R")
 source("helpers.R")
 

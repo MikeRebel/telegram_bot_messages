@@ -1,9 +1,3 @@
-library(telegram.bot)
-library(httr)
-library(jsonlite)
-library(data.table)
-library(maditr)
-
 source("secret.R")
 source("helpers.R")
 update_path = "updates/tbot/"
