@@ -173,9 +173,28 @@ get_random_number <- function() {
 #### sstbot helpers ####
 # /list command 
 list <- function(bot, update) {
+     url <- "https://api.survey-studio.com/projects"
+     headers <- c(
+          accept = "application/json",
+          `SS-Token` = SurveyStudioAPItoken
+     )
+     headers
+
+     query <- paste0(url,"?","State=2")
      
-     
-     
+     response <- GET(query, add_headers(.headers=headers))
+     content <- content(response, "text")
+     parsed_content <- fromJSON(content)
+     i <- 1
+     bot$sendMessage(chat_id = chat_id, text = "Список открытых проектов")  
+     for (project in parsed_content$body$name) {
+
+          bot$sendMessage(chat_id = chat_id, text = paste0(i," - ",project))    
+          # print()
+          i = i + 1
+
+     }
+
 }
 
 
