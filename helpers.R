@@ -208,7 +208,111 @@ list <- function(bot, update) {
      
 }
 
-
+data <- function(bot, update) {
+     if(update$message$from$id %in% sst_bot_users_ids_list) {
+          
+          GETurl <- "https://api.survey-studio.com/projects"
+          GETheaders <- c(
+               accept = "application/json",
+               `SS-Token` = SurveyStudioAPItoken
+          )
+          GETheaders
+          project_id <- gsub("/data", "", update$message$text) %>% as.integer()
+          if (is.na(project_id)) {
+               
+               bot$sendMessage(chat_id = update$message$chat$id, text = "Укажите ID проекта после команды /data") 
+               
+          } else {
+               
+               query <- paste0(GETurl,"/",project_id,"/counters")
+          
+          
+               response <- GET(query, add_headers(.headers = GETheaders))
+               content <- content(response, "text")
+               parsed_content <- fromJSON(content)
+               
+               
+               url <- "https://api.survey-studio.com/projects"
+               headers <- c(
+                    accept = "application/json",
+                    `SS-Token` = SurveyStudioAPItoken,
+                    `Content-Type` = "application/json-patch+json"
+               )
+               headers
+               
+               Request_body <- as.list(c(
+                    counterId = parsed_content$body$id[1],
+                    exportFormat = 1,
+                    spssEncoding = 0,
+                    dateFrom = NULL,
+                    dateTo = NULL,
+                    includeAll = FALSE,
+                    addNumericPublicId = FALSE,
+                    allowFullSizeStrings = FALSE,
+                    exportQuestionText = FALSE,
+                    exportLabelsInsteadValues = FALSE,
+                    exportLabelsAndCodeValues = FALSE,
+                    ignoreErrors = FALSE,
+                    exportHostAddress = FALSE,
+                    exportUserAgent = FALSE,
+                    exportInterviewDumpUrl = FALSE,
+                    exportInterviewResult = FALSE,
+                    exportContactData = FALSE,
+                    exportValidationComments = FALSE,
+                    exportValidationDetails = FALSE,
+                    includeTotalDurations = FALSE,
+                    exportEndedCreatedDifference = FALSE,
+                    exportContractorInfo = FALSE,
+                    convertMultiLineTextToSingleLine = FALSE,
+                    exportSpoofingDataFields = FALSE,
+                    exportMobileAppId = FALSE,
+                    exportDurationInMinutes = FALSE,
+                    exportQuestionsDuration = FALSE,
+                    exportUpdatedAt = FALSE,
+                    archiveSingleXlsxResultFile = TRUE,
+                    easyTabsIntegration = FALSE
+               ))
+               
+               Request_body
+               
+               query <- paste0(url,"/",project_id,"/results/data")
+               
+               response <- POST(query, add_headers(.headers = headers), body = Request_body, encode = "json")
+               content <- content(response, "text")
+               parsed_content <- fromJSON(content)
+               if (parsed_content$isSuccess) {
+                    
+                    request_ID <- parsed_content$body
+                    
+               } else {
+                    
+                    bot$sendMessage(chat_id = update$message$chat$id, text = parsed_content$errors$description) 
+                    
+               }
+               
+               query <- paste0(GETurl,"/",project_id,"/results/data/",request_ID)
+               response <- GET(query, add_headers(.headers = GETheaders))
+               content <- content(response, "text")
+               parsed_content <- fromJSON(content)
+               
+               while (parsed_content$body$state < 3){
+                    response <- GET(query, add_headers(.headers = GETheaders))
+                    content <- content(response, "text")
+                    parsed_content <- fromJSON(content)
+                    
+                    
+                    Sys.sleep(5)
+                    
+               }
+               
+               bot$sendMessage(chat_id = update$message$chat$id, text = paste0("Ссылка на скачивание выгруженной базы: ",
+                                                                               parsed_content$body$fileUrl)
+               )
+               
+          }
+          
+     }
+}
 
 
 #### common functions ####
