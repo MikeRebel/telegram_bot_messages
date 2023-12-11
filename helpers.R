@@ -3,6 +3,7 @@ library(httr)
 library(jsonlite)
 library(data.table)
 library(maditr)
+updates_path = "updates/"
 
 #### wbot helpers ####
 warthunder_save_path = "updates/wbot/"
@@ -171,6 +172,7 @@ get_random_number <- function() {
 
 
 #### sstbot helpers ####
+sst_save_path = "updates/sst/"
 # /list command 
 list <- function(bot, update) {
      if(update$message$from$id %in% sst_bot_users_ids_list) {
@@ -363,6 +365,7 @@ quota <- function(bot, update) {
 
 #### common functions ####
 start <- function(bot, update){
+     saveRDS(update[["message"]][["from"]][["id"]],paste0(updates_path, update[["message"]][["from"]][["id"]], "_user_start_request_id.rds")) 
      bot$sendMessage(chat_id = update$message$chat_id,
                      text = sprintf("Hello %s!", update$message$from$first_name))
 }
