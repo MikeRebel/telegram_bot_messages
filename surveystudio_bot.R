@@ -17,10 +17,12 @@ print(chat_id)
 start_handler <- CommandHandler("start", start)
 list_handler <- CommandHandler("list", list)
 data_handler <- CommandHandler("data", data)
+quota_handler <- CommandHandler("quota", quota)
 # Команды
 # start - Начало работы. Для управления проектом используйте id проекта из команды /list
 # list - список открытых проектов из Survey Studio
 # data - укажите через /data id номер проекта из которого необходимо выгрузить завершенные интервью
+# quota - укажите через /quota id номер проекта из которого необходимо получить значения счетчиков
 
 #### daemon ####
 rm(updater)
@@ -28,4 +30,5 @@ updater <- Updater(token = sst_token)
 updater <- updater + start_handler
 updater <- updater + list_handler
 updater <- updater + data_handler
+updater <- updater + quota_handler
 updater$start_polling()

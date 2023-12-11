@@ -314,6 +314,52 @@ data <- function(bot, update) {
      }
 }
 
+quota <- function(bot, update) {
+     if(update$message$from$id %in% sst_bot_users_ids_list) {
+          
+          GETurl <- "https://api.survey-studio.com/projects"
+          GETheaders <- c(
+               accept = "application/json",
+               `SS-Token` = SurveyStudioAPItoken
+          )
+          GETheaders
+          project_id <- gsub("/quota", "", update$message$text) %>% as.integer()
+          if (is.na(project_id)) {
+               
+               bot$sendMessage(chat_id = update$message$chat$id, text = "Укажите ID проекта после команды /quota") 
+               
+          } else {
+               
+               query <- paste0(GETurl,"/",project_id,"/counters")
+               
+               
+               response <- GET(query, add_headers(.headers = GETheaders))
+               content <- content(response, "text")
+               parsed_content <- fromJSON(content)
+               
+               response_text <- as.data.frame(parsed_content$body)
+               
+               messages <- ifelse(!is.na(response_text$quota),
+                                  paste0(response_text$name,
+                                  " - Квота: ",
+                                  response_text$quota
+               ),NA)
+               
+               messages <-  na.omit(messages)
+               
+               for (message in messages) {
+                    
+                   
+                    bot$sendMessage(chat_id = update$message$chat$id, text = message)
+                    Sys.sleep(0.25)
+                    
+                    
+               }
+               
+          }
+          
+     }
+}
 
 #### common functions ####
 start <- function(bot, update){
