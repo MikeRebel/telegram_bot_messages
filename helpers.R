@@ -307,8 +307,8 @@ data <- function(bot, update) {
                     
                }
                
-               bot$sendMessage(chat_id = update$message$chat$id, text = paste0("Ссылка на скачивание выгруженной базы: ",
-                                                                               parsed_content$body$fileUrl)
+               bot$sendMessage(chat_id = update$message$chat$id, text = paste0("Ссылку на скачивание выгруженной базы смотрите по ссылке https://my.survey-studio.com/project/results?pId=",
+                                                                               project_id)
                )
                
           }
