@@ -3,7 +3,9 @@ library(httr)
 library(jsonlite)
 library(data.table)
 library(maditr)
+library(magick)
 updates_path = "updates/"
+options(scipen = 999)
 
 #### wbot helpers ####
 warthunder_save_path = "updates/wbot/"
@@ -363,6 +365,8 @@ quota <- function(bot, update) {
      }
 }
 
+
+
 #### common functions ####
 start <- function(bot, update){
      saveRDS(update[["message"]][["from"]][["id"]],paste0(updates_path, update[["message"]][["from"]][["id"]], "_user_start_request_id.rds")) 
@@ -402,3 +406,257 @@ create_user_profile <- function(user_id, user_name, user_message) {
      )
      user_profile
 }
+
+
+#### mia bot helpers ####
+mia_path <- "mia_bot/"
+
+mia_image_pool <- data.table(
+   mia_file_user_id = as.integer(1),
+   mia_file_user_name = "",
+   mia_file_id = as.integer(1),
+   mia_file_path = "",
+   mia_file_info = "",
+   mia_file_timestamp = as.integer(1),
+   message_date = as.Date.POSIXct(Sys.time()),
+   mia_file_name = "",
+   mia_file_price = as.integer(1)
+)
+
+mia_image_pool <- mia_image_pool[-1]
+mia_image_pool <- readRDS(paste0(mia_path, "mia_image_pool.rds"))
+# data_part <- readRDS(paste0(mia_path, "mia_image_pool.rds"))
+# data_part$mia_file_name = ""
+# data_part$mia_file_price = as.integer(1)
+
+# Create a data.table to manage user access to files
+mia_user_access <- data.table(
+   user_id = integer(),
+   user_name = character(),
+   accessible_file_id = "" # This column will store a list of file_ids
+)
+
+# saveRDS(mia_user_access,paste0(mia_path, "mia_user_access.rds"))
+mia_user_access <- readRDS(paste0(mia_path, "mia_user_access.rds"))
+
+# Define the function to handle incoming messages and save images
+save_image_to_local <- function(bot, update) {
+   # Get the message object
+   message <- update$message
+   
+   # Check if the message contains a photo
+   if (!is.null(message$photo)) {
+      # Get the highest resolution photo
+      file_id <- message$photo[[length(message$photo)]]$file_id
+      
+      # Download the photo file
+      file_info <- bot$getFile(file_id)
+      file_path <- file_info$file_path
+      
+      # Define the local path to save the image
+      local_file_path <- paste0("mia_bot/images/", basename(file_path))
+      
+      # Download the file to the local directory
+      bot$getFile(file_id, destfile = local_file_path)
+      
+      # Append the information to the data.table
+      mia_image_pool <<- rbind(
+         mia_image_pool,
+         data.table(
+            mia_file_user_id = message$from$id,
+            mia_file_user_name = ifelse(!is.null(message$from$username), message$from$username, ""),
+            mia_file_id = file_id,
+            mia_file_path = local_file_path,
+            mia_file_info = file_info$file_path,
+            mia_file_timestamp = as.integer(Sys.time()),
+            message_date = as.Date(Sys.time()),
+            mia_file_name = "",
+            mia_file_price = as.integer(1)
+            
+         )
+      )
+      
+      saveRDS(mia_image_pool,paste0(mia_path, "mia_image_pool.rds"))
+      
+      grant_access(417704252, "Admin", file_id)
+      grant_access(1304572225, "Owner", file_id)
+      
+      Sys.sleep(60)
+      # Notify the user
+      bot$sendMessage(chat_id = message$chat_id, 
+                      text = "Image saved")
+   } else {
+      # Notify the user if there's no photo
+      bot$sendMessage(chat_id = message$chat_id, 
+                      text = "No photo found in the message!")
+   }
+   # updater$stop_polling()
+}
+
+# Function to get image details from mia_image_pool by file_id
+get_image_by_file_id <- function(file_id) {
+   # Check if the file_id exists in the mia_image_pool
+   result <- mia_image_pool[mia_file_id == file_id]
+   
+   # Return the result
+   if (nrow(result) == 0) {
+      return("No record found for the given file_id.")
+   } else {
+      return(result)
+   }
+}
+
+# Example usage:
+# Assuming mia_image_pool has some records and you have a valid file_id
+# file_id <- "example_file_id"
+# print(get_image_by_file_id(file_id))
+
+
+preview_pictures <- function(bot, update) {
+   # Check if there are any pictures
+   if (nrow(mia_image_pool) == 0) {
+      bot$sendMessage(chat_id = update$message$chat_id, 
+                      text = "No pictures available to preview.")
+      return(NULL)
+   }
+   
+   # Prepare preview for each picture
+   for (i in seq_len(nrow(mia_image_pool))) {
+      # Read and resize image to 10x10 pixels
+      
+      img <- image_read(mia_image_pool$mia_file_path[i])
+      img <- image_resize(img, "15x15!")
+      
+      # Save resized image temporarily
+      temp_path <- tempfile(fileext = ".png")
+      image_write(img, path = temp_path, format = "png")
+      
+      # Send the image with its name and price
+      bot$sendPhoto(chat_id = update$message$chat_id, 
+                    photo = temp_path,
+                    caption = paste("Name:", mia_image_pool$mia_file_name[i], 
+                                    "\nPrice:", mia_image_pool$mia_file_price[i]))
+   }
+}
+
+show_pictures <- function(bot, update) {
+   message <- update$message
+   
+   user_id <- message$from$id
+   # Check if there are any pictures
+   if (nrow(mia_image_pool) == 0) {
+      bot$sendMessage(chat_id = update$message$chat_id, 
+                      text = "No pictures available to preview.")
+      return(NULL)
+   }
+   
+   # Prepare preview for each picture
+   for (i in seq_len(nrow(mia_image_pool))) {
+ 
+      img_id <- mia_image_pool$mia_file_id[i]
+           
+      if(has_access(user_id,img_id)) {
+                # img <- image_read(mia_image_pool$mia_file_path[i])
+                # img <- image_resize(img, "15x15!")
+                
+                # Save resized image temporarily
+                # temp_path <- tempfile(fileext = ".png")
+                # image_write(img, path = temp_path, format = "png")
+                
+                # Send the image with its name and price
+                bot$sendPhoto(chat_id = update$message$chat_id, 
+                              photo = mia_image_pool$mia_file_path[i],
+                              caption = paste("Name:", mia_image_pool$mia_file_name[i], 
+                                              "\nPrice:", mia_image_pool$mia_file_price[i]))
+      }
+   }
+}
+
+
+save_picture_info <- function(bot, update) {
+   # Parse the user command
+   message <- update$message
+   text <- message$text
+   
+   # Command format: /image_name_save <id> <name> <price>
+   cmd_parts <- strsplit(text, " ")[[1]]
+   if (length(cmd_parts) != 4) {
+      bot$sendMessage(chat_id = message$chat_id, 
+                      text = "команда: /image_name_save <id> <name> <price>")
+      return(NULL)
+   }
+   
+   # Extract name and price
+   picture_id <- as.numeric(cmd_parts[2])
+   picture_name <- cmd_parts[3]
+   picture_price <- as.numeric(cmd_parts[4])
+   
+   # Check for a photo in the message
+   if (!is.null(picture_id) & is.numeric(picture_id) & picture_id>0 & picture_id%%1 == 0 & nrow(mia_image_pool[picture_id]) == 1) {
+ 
+      
+      # Save to data.table
+      mia_image_pool[picture_id]$mia_file_name <<- picture_name
+      mia_image_pool[picture_id]$mia_file_price <<- picture_price
+      saveRDS(mia_image_pool,paste0(mia_path, "mia_image_pool.rds"))
+      
+      bot$sendMessage(chat_id = message$chat_id, 
+                      text = paste("Имя картинки:", picture_name, 
+                                   "Цена:", picture_price,
+                                   " Сохранено."))
+   } else {
+      bot$sendMessage(chat_id = message$chat_id, 
+                      text = "Неправильно набрана команда /image_name_save <id> <name> <price>")
+   }
+}
+
+
+
+# Function to grant a user access to a file
+grant_access <- function(user_id, user_name, file_id) {
+
+      # Add a new row for the user with the file_id
+      mia_user_access <<- rbind(
+         mia_user_access,
+         data.table(user_id = user_id, user_name = user_name, accessible_file_id = file_id)
+      )
+      saveRDS(mia_user_access,paste0(mia_path, "mia_user_access.rds"))
+   
+}
+
+# Function to check a user's access to a specific file
+has_access <- function(user_id, file_id) {
+   user_row <- mia_user_access[user_id == user_id]
+   
+   if (nrow(user_row) == 0) {
+      return(FALSE) # User not found
+   }
+   
+   # Check if the file_id is in the user's list of accessible files
+   return(file_id %in% user_row$accessible_file_id)
+}
+
+# Function to list all files a user has access to
+list_user_files <- function(user_id) {
+   user_row <- mia_user_access[user_id == user_id]
+   
+   if (nrow(user_row) == 0) {
+      return("User not found or no files accessible.")
+   }
+   
+   return(user_row$accessible_file_id)
+}
+
+# # Example Usage:
+# # Grant access
+# grant_access(101, "user_1", "file_123")
+# grant_access(101, "user_1", "file_456")
+# grant_access(102, "user_2", "file_123")
+# 
+# # Check access
+# print(has_access(101, "file_123")) # TRUE
+# print(has_access(102, "file_456")) # FALSE
+# 
+# # List user files
+# print(list_user_files(101)) # "file_123", "file_456"
+# print(list_user_files(102)) # "file_123"
